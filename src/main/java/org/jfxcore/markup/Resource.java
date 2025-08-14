@@ -9,6 +9,13 @@ import java.net.URI;
 import java.net.URL;
 import java.util.Objects;
 
+/**
+ * Finds a resource with a given name.
+ * <p>
+ * If the name starts with {@code /}, the name is resolved with the {@link ClassLoader#getResource(String)}
+ * method of the context class loader of the current thread. Otherwise, the name is resolved with the
+ * {@link Class#getResource(String)} method of the class of the root element of the FXML document.
+ */
 @DefaultProperty("value")
 public final class Resource implements MarkupExtension.Supplier<Object> {
 
