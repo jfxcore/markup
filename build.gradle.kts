@@ -1,3 +1,11 @@
+@file:Suppress("UnstableApiUsage")
+
+import java.net.URI
+import java.net.http.HttpClient
+import java.net.http.HttpRequest
+import java.net.http.HttpResponse
+import java.util.Base64
+
 plugins {
     `java-library`
     `maven-publish`
@@ -5,7 +13,7 @@ plugins {
 }
 
 group = "org.jfxcore"
-version = "1.0-SNAPSHOT"
+version = project.findProperty("TAG_VERSION_PROJECT") ?: "1.0-SNAPSHOT"
 
 repositories {
     mavenCentral()
@@ -22,9 +30,41 @@ tasks.test {
     useJUnitPlatform()
 }
 
+tasks.withType<GenerateModuleMetadata> {
+    enabled = false
+}
+
+if (!version.toString().endsWith("-SNAPSHOT")) {
+    val mavenCentralFixup by tasks.registering {
+        doLast {
+            val url = project.property("REPOSITORY_POST_URL") as String
+            val username = project.property("REPOSITORY_USERNAME") as String
+            val password = project.property("REPOSITORY_PASSWORD") as String
+            val userToken = Base64.getEncoder().encodeToString("$username:$password".toByteArray(Charsets.UTF_8))
+            val request = HttpRequest.newBuilder()
+                .uri(URI.create(url))
+                .header("Authorization", "Bearer $userToken")
+                .POST(HttpRequest.BodyPublishers.noBody())
+                .build()
+
+            logger.info("POST $url")
+
+            HttpClient.newHttpClient().use {
+                val response = it.send(request, HttpResponse.BodyHandlers.ofString())
+                logger.info("Received status code: ${response.statusCode()}")
+            }
+        }
+    }
+
+    tasks.publish {
+        finalizedBy(mavenCentralFixup)
+    }
+}
+
 publishing {
     publications {
         create<MavenPublication>("maven") {
+            artifact(tasks.jar)
             artifact(tasks["sourcesJar"])
             artifact(tasks["javadocJar"])
             pom {

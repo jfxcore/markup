@@ -1,0 +1,74 @@
+name: CI publish
+
+on:
+  push:
+    branches:
+      - 'master'
+    tags:
+      - '*'
+
+jobs:
+  validation:
+    name: "Gradle Wrapper Validation"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: gradle/wrapper-validation-action@v2
+
+  build:
+    name: Build and publish
+    needs: validation
+    runs-on: ubuntu-latest
+    env:
+      SNAPSHOT_BUILD: ${{ github.ref == 'refs/heads/master' }}
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '24.0.1'
+
+      - name: Choose repository
+        id: remoteRepository
+        run: echo location=$([ "${{ github.ref }}" = "refs/heads/master" ] && echo "${SNAPSHOT}" || echo "${STAGING}") >> $GITHUB_OUTPUT
+        env:
+          SNAPSHOT: https://central.sonatype.com/repository/maven-snapshots
+          STAGING: https://ossrh-staging-api.central.sonatype.com/service/local/staging/deploy/maven2
+
+      - name: Configure GPG
+        run: |
+          cat <<EOT >> ./gpgkey
+          ${{ secrets.SIGNING_KEY }}
+          EOT
+          gpg --batch --import ./gpgkey
+          gpg --pinentry-mode=loopback --passphrase ${{ secrets.SIGNING_PASSWORD }} --export-secret-keys > ~/.gnupg/secring.gpg
+
+      - name: Set up Gradle properties
+        run: |
+          cat <<EOT >> ./gradle.properties
+          signing.keyId=${{ secrets.SIGNING_KEYNAME }}
+          signing.password=${{ secrets.SIGNING_PASSWORD }}
+          signing.secretKeyRingFile=$HOME/.gnupg/secring.gpg
+          EOT
+
+      - name: Build snapshot
+        run: ./gradlew publish -x test -x check -PREPOSITORY_URL=${URL} -PREPOSITORY_USERNAME=${USERNAME} -PREPOSITORY_PASSWORD=${PASSWORD}
+        if: ${{ env.SNAPSHOT_BUILD == 'true' }}
+        env:
+          URL: ${{ steps.remoteRepository.outputs.location }}
+          VERSION: ${{ github.ref_name }}
+          USERNAME: ${{ secrets.SONATYPE_USERNAME }}
+          PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
+
+      - name: Build release
+        run: ./gradlew publish -x test -x check -PREPOSITORY_URL=${URL} -PREPOSITORY_POST_URL=${POST_URL} -PREPOSITORY_USERNAME=${USERNAME} -PREPOSITORY_PASSWORD=${PASSWORD} -PTAG_VERSION_PROJECT=${VERSION}
+        if: ${{ env.SNAPSHOT_BUILD == 'false' }}
+        env:
+          URL: ${{ steps.remoteRepository.outputs.location }}
+          POST_URL: https://ossrh-staging-api.central.sonatype.com/manual/upload/defaultRepository/org.jfxcore
+          VERSION: ${{ github.ref_name }}
+          USERNAME: ${{ secrets.SONATYPE_USERNAME }}
+          PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
