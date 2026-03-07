@@ -74,7 +74,7 @@ class BooleanComplementBindingTest {
         assertEquals(Boolean.FALSE, property2.getValue());
 
         RuntimeException ex = captureUncaughtRuntimeException(() -> property1.setValue(Boolean.FALSE));
-        assertEquals("Bidirectional binding failed, setting to the previous value", ex.getMessage());
+        assertEquals("Bidirectional binding failed, setting to the previous value.", ex.getMessage());
 
         var cause = assertInstanceOf(IllegalStateException.class, ex.getCause());
         assertEquals("simulated failure: true", cause.getMessage());
