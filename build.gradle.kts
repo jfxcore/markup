@@ -117,7 +117,7 @@ dependencies {
     compileOnly("org.openjfx:javafx-graphics:23:linux")
     compileOnly("org.openjfx:javafx-controls:23:linux")
 
-    testImplementation(platform("org.junit:junit-bom:5.9.1"))
-    testImplementation("org.junit.jupiter:junit-jupiter")
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+    testImplementation("org.junit.jupiter:junit-jupiter:5.12.2")
     testImplementation("org.openjfx:javafx-base:23:linux")
 }
