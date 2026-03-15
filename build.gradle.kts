@@ -30,6 +30,10 @@ tasks.test {
     useJUnitPlatform()
 }
 
+tasks.withType<Javadoc>().configureEach {
+    (options as StandardJavadocDocletOptions).links("https://openjfx.io/javadoc/17/")
+}
+
 tasks.withType<GenerateModuleMetadata> {
     enabled = false
 }
@@ -120,4 +124,5 @@ dependencies {
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
     testImplementation("org.junit.jupiter:junit-jupiter:5.12.2")
     testImplementation("org.openjfx:javafx-base:23:linux")
+    testImplementation("org.openjfx:javafx-graphics:23:linux")
 }
