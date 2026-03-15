@@ -1,8 +1,10 @@
-// Copyright (c) 2025, JFXcore. All rights reserved.
+// Copyright (c) 2025, 2026, JFXcore. All rights reserved.
 // Use of this source code is governed by the BSD-3-Clause license that can be found in the LICENSE file.
 
-package org.jfxcore.markup;
+package org.jfxcore.markup.resource;
 
+import org.jfxcore.markup.MarkupContext;
+import org.jfxcore.markup.MarkupExtension;
 import javafx.beans.DefaultProperty;
 import javafx.beans.NamedArg;
 import java.net.URI;
@@ -17,11 +19,11 @@ import java.util.Objects;
  * {@link Class#getResource(String)} method of the class of the root element of the FXML document.
  */
 @DefaultProperty("value")
-public final class Resource implements MarkupExtension.Supplier<Object> {
+public final class ClassPathResource implements MarkupExtension.Supplier<Object> {
 
     private final String value;
 
-    public Resource(@NamedArg("value") String value) {
+    public ClassPathResource(@NamedArg("value") String value) {
         this.value = Objects.requireNonNull(value, "value cannot be null").trim();
     }
 
@@ -53,3 +55,4 @@ public final class Resource implements MarkupExtension.Supplier<Object> {
         return url;
     }
 }
+
