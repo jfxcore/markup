@@ -13,13 +13,13 @@ The latest release is available on [Maven Central](https://central.sonatype.com/
 <dependency>
     <groupId>org.jfxcore</groupId>
     <artifactId>markup</artifactId>
-    <version>0.1.0</version>
+    <version>0.2.0</version>
 </dependency>
 ```
 
 ## Gradle
 ```kotlin
 dependencies {
-    implementation("org.jfxcore:markup:0.1.0")
+    implementation("org.jfxcore:markup:0.2.0")
 }
 ```
