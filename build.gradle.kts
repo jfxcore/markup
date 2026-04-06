@@ -116,6 +116,14 @@ signing {
     sign(publishing.publications["maven"])
 }
 
+tasks.withType<Sign>().configureEach {
+    val taskNames = gradle.startParameter.taskNames.map { it.substringAfterLast(':') }
+    val publishToMavenLocal = taskNames.isNotEmpty() && taskNames.all { name -> name == "publishToMavenLocal" }
+    onlyIf {
+        !publishToMavenLocal
+    }
+}
+
 dependencies {
     compileOnly("org.openjfx:javafx-base:23:linux")
     compileOnly("org.openjfx:javafx-graphics:23:linux")
