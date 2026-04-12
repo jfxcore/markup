@@ -41,7 +41,7 @@ import java.lang.annotation.Target;
  * <ul>
  *     <li>Import declarations of the Java source file also apply to markup, they do not need to be redeclared
  *         as {@code <?import?>} processing instructions.
- *     <li>The {@code fx:class} attribute is not allowed, because the annotated Java class is statically known
+ *     <li>The {@code fx:subclass} attribute is not allowed, because the annotated Java class is statically known
  *         to be the code-behind class of the markup.
  *     <li>The namespaces {@code xmlns="http://javafx.com/javafx"} and {@code xmlns:fx="http://jfxcore.org/fxml/2.0"}
  *         do not need to be declared; they are implicitly declared by the compiler. However, if the {@code xmlns:fx}
