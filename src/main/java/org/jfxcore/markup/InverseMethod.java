@@ -1,4 +1,4 @@
-// Copyright (c) 2025, JFXcore. All rights reserved.
+// Copyright (c) 2025, 2026, JFXcore. All rights reserved.
 // Use of this source code is governed by the BSD-3-Clause license that can be found in the LICENSE file.
 
 package org.jfxcore.markup;
@@ -19,5 +19,9 @@ import java.lang.annotation.Target;
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.CLASS)
 public @interface InverseMethod {
+
+    /**
+     * {@return the name of the inverse method}
+     */
     String value();
 }

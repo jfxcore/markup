@@ -23,6 +23,12 @@ public final class ClassPathResource implements MarkupExtension.Supplier<Object>
 
     private final String value;
 
+    /**
+     * Creates a {@code ClassPathResource} with the specified resource name.
+     *
+     * @param value the name of the resource
+     * @throws NullPointerException if {@code value} is {@code null}
+     */
     public ClassPathResource(@NamedArg("value") String value) {
         this.value = Objects.requireNonNull(value, "value cannot be null").trim();
     }
@@ -55,4 +61,3 @@ public final class ClassPathResource implements MarkupExtension.Supplier<Object>
         return url;
     }
 }
-
