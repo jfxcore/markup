@@ -1,4 +1,4 @@
-// Copyright (c) 2025, JFXcore. All rights reserved.
+// Copyright (c) 2025, 2026, JFXcore. All rights reserved.
 // Use of this source code is governed by the BSD-3-Clause license that can be found in the LICENSE file.
 
 package org.jfxcore.markup;
@@ -34,6 +34,7 @@ public sealed interface MarkupExtension {
          *
          * @param property the target property
          * @param context the markup context
+         * @throws Exception if an error occurs while applying the markup extension
          */
         void accept(Property<T> property, MarkupContext context) throws Exception;
     }
@@ -50,6 +51,7 @@ public sealed interface MarkupExtension {
          *
          * @param property the target property
          * @param context the markup context
+         * @throws Exception if an error occurs while applying the markup extension
          */
         void accept(ReadOnlyProperty<T> property, MarkupContext context) throws Exception;
     }
@@ -73,6 +75,10 @@ public sealed interface MarkupExtension {
         @Target(ElementType.METHOD)
         @Retention(RetentionPolicy.CLASS)
         @interface ReturnType {
+
+            /**
+             * {@return the supported return types}
+             */
             Class<?>[] value() default {};
         }
 
@@ -80,6 +86,7 @@ public sealed interface MarkupExtension {
          * Provides a value for the target property or argument.
          *
          * @param context the markup context
+         * @throws Exception if an error occurs while applying the markup extension
          * @return the value
          */
         T get(MarkupContext context) throws Exception;
@@ -94,6 +101,7 @@ public sealed interface MarkupExtension {
          * Provides a boolean value for the target property or argument.
          *
          * @param context the markup context
+         * @throws Exception if an error occurs while applying the markup extension
          * @return the boolean value
          */
         boolean get(MarkupContext context) throws Exception;
@@ -108,6 +116,7 @@ public sealed interface MarkupExtension {
          * Provides an integer value for the target property or argument.
          *
          * @param context the markup context
+         * @throws Exception if an error occurs while applying the markup extension
          * @return the integer value
          */
         int get(MarkupContext context) throws Exception;
@@ -122,6 +131,7 @@ public sealed interface MarkupExtension {
          * Provides a long value for the target property or argument.
          *
          * @param context the markup context
+         * @throws Exception if an error occurs while applying the markup extension
          * @return the long value
          */
         long get(MarkupContext context) throws Exception;
@@ -136,6 +146,7 @@ public sealed interface MarkupExtension {
          * Provides a float value for the target property or argument.
          *
          * @param context the markup context
+         * @throws Exception if an error occurs while applying the markup extension
          * @return the float value
          */
         float get(MarkupContext context) throws Exception;
@@ -150,6 +161,7 @@ public sealed interface MarkupExtension {
          * Provides a double value for the target property or argument.
          *
          * @param context the markup context
+         * @throws Exception if an error occurs while applying the markup extension
          * @return the double value
          */
         double get(MarkupContext context) throws Exception;
