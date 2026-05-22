@@ -108,7 +108,7 @@ public final class DynamicResource<T> implements MarkupExtension.PropertyConsume
         var resourceContext = ResourceContextHelper.getResourceContext(markupContext, DynamicResource.class);
 
         if (ResourceContextHelper.isFormattedStringTarget(markupContext.getTargetType(), formatArguments)) {
-            acceptString((Property<String>)property, key, formatArguments, markupContext, resourceContext);
+            acceptString((Property<String>)property, key, formatArguments, resourceContext);
         } else {
             Object value = ResourceContextHelper.getResource(markupContext.getTargetType(), resourceContext, key, null);
             acceptObject(property, key, (T)value, markupContext.getTargetType(), resourceContext);
@@ -127,7 +127,7 @@ public final class DynamicResource<T> implements MarkupExtension.PropertyConsume
     }
 
     private static void acceptString(Property<String> property, String key, Object[] formatArguments,
-                                     MarkupContext markupContext, ResourceContext resourceContext) {
+                                     ResourceContext resourceContext) {
         int numObservables = 0;
 
         if (formatArguments != null) {
@@ -139,16 +139,14 @@ public final class DynamicResource<T> implements MarkupExtension.PropertyConsume
         }
 
         if (numObservables > 0) {
-            acceptStringWithObservableArguments(markupContext.getTargetType(), property, key, formatArguments,
-                                                numObservables, resourceContext);
+            acceptStringWithObservableArguments(property, key, formatArguments, numObservables, resourceContext);
         } else {
-            acceptStringWithoutObservableArguments(markupContext.getTargetType(), property, key,
-                                                   formatArguments, resourceContext);
+            acceptStringWithoutObservableArguments(property, key, formatArguments, resourceContext);
         }
     }
 
     private static void acceptStringWithObservableArguments(
-            Class<?> targetType, Property<String> property, String key, Object[] formatArguments,
+            Property<String> property, String key, Object[] formatArguments,
             int numObservables, ResourceContext resourceContext) {
         Observable[] observables = new Observable[numObservables];
 
@@ -167,13 +165,11 @@ public final class DynamicResource<T> implements MarkupExtension.PropertyConsume
     }
 
     private static void acceptStringWithoutObservableArguments(
-            Class<?> targetType, Property<String> property, String key,
-            Object[] formatArguments, ResourceContext resourceContext) {
+            Property<String> property, String key, Object[] formatArguments, ResourceContext resourceContext) {
         String formattedValue = resourceContext.getString(key, formatArguments);
 
         if (resourceContext instanceof Observable observableContext) {
-            var observableValue = new ObservableStringImpl(
-                targetType, resourceContext, key, formattedValue, formatArguments);
+            var observableValue = new ObservableStringImpl(resourceContext, key, formattedValue, formatArguments);
             property.bind(observableValue);
             observableContext.addListener(new WeakInvalidationListener(observableValue));
         } else {
@@ -213,13 +209,22 @@ public final class DynamicResource<T> implements MarkupExtension.PropertyConsume
         }
     }
 
-    private static class ObservableStringImpl extends ObservableValueImpl<String> {
+    private static class ObservableStringImpl extends ObservableValueBase<String> implements InvalidationListener {
         final Object[] formatArguments;
+        final ResourceContext context;
+        final String key;
+        String value;
 
-        ObservableStringImpl(Class<?> targetType, ResourceContext context, String key,
-                             String value, Object[] formatArguments) {
-            super(targetType, context, key, value);
+        ObservableStringImpl(ResourceContext context, String key, String value, Object[] formatArguments) {
             this.formatArguments = formatArguments;
+            this.context = context;
+            this.key = key;
+            this.value = value;
+        }
+
+        @Override
+        public String getValue() {
+            return value;
         }
 
         @Override
