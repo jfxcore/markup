@@ -11,7 +11,9 @@ import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 import java.util.ResourceBundle;
+import java.util.function.Function;
 
 /**
  * Provides string and object resources for {@link StaticResource} and {@link DynamicResource} markup extensions.
@@ -98,6 +100,9 @@ public interface ResourceContext {
      * @throws NullPointerException if {@code bundle} or {@code locale} is {@code null}
      */
     static ResourceContext ofResourceBundle(ResourceBundle bundle, Locale locale) {
+        Objects.requireNonNull(bundle, "bundle cannot be null");
+        Objects.requireNonNull(locale, "locale cannot be null");
+
         return new ResourceContext() {
             @Override
             public String getString(String key, Object... args) {
@@ -114,39 +119,51 @@ public interface ResourceContext {
     }
 
     /**
-     * Creates a resource context backed by the specified {@code ResourceBundle} and formatting locale.
+     * Creates a resource context backed by a {@code ResourceBundle} obtained from the specified supplier
+     * and an observable formatting locale.
      * <p>
      * When the locale changes, the resource context is invalidated so that markup extensions such as
      * {@link DynamicResource} can refresh values that are locale-dependent.
+     * <p>
+     * String values are obtained from the bundle and formatted with {@link MessageFormat} when arguments are
+     * supplied. Object values are obtained from the bundle and returned directly when already compatible with
+     * the requested type. String-valued resources are converted to common primitive, wrapper, character, and
+     * enum target types.
      *
-     * @param bundle the resource bundle
-     * @param locale the observable locale used for formatted string values
+     * @param bundleSupplier function that returns a resource bundle for a given locale
+     * @param locale the observable locale used for formatted string values and obtaining the resource bundle
      * @return a resource context backed by {@code bundle}
-     * @throws NullPointerException if {@code bundle} or {@code locale} is {@code null}
+     * @throws NullPointerException if {@code bundleSupplier} or {@code locale} is {@code null}
      */
-    static ResourceContext ofResourceBundle(ResourceBundle bundle, ObservableValue<Locale> locale) {
+    static ResourceContext ofResourceBundle(Function<Locale, ResourceBundle> bundleSupplier,
+                                            ObservableValue<Locale> locale) {
+        Objects.requireNonNull(bundleSupplier, "bundleSupplier cannot be null");
+        Objects.requireNonNull(locale, "locale cannot be null");
+
         class Impl implements ResourceContext, Observable {
             final List<InvalidationListener> listeners = new ArrayList<>(4);
             final InvalidationListener listener = obs -> fireValueChangedEvent();
 
+            ResourceBundle resourceBundle;
             List<InvalidationListener> toBeAdded;
             List<InvalidationListener> toBeRemoved;
             boolean locked;
 
             {
+                resourceBundle = bundleSupplier.apply(locale.getValue());
                 locale.addListener(new WeakInvalidationListener(listener));
             }
 
             @Override
             public String getString(String key, Object... args) {
                 return args != null && args.length > 0
-                    ? new MessageFormat(bundle.getString(key), locale.getValue()).format(args)
-                    : bundle.getString(key);
+                    ? new MessageFormat(resourceBundle.getString(key), locale.getValue()).format(args)
+                    : resourceBundle.getString(key);
             }
 
             @Override
             public <T> T getObject(String key, Class<T> type) {
-                return ValueConverter.convert(key, bundle.getObject(key), type);
+                return ValueConverter.convert(key, resourceBundle.getObject(key), type);
             }
 
             @Override
@@ -177,6 +194,7 @@ public interface ResourceContext {
 
             private void fireValueChangedEvent() {
                 locked = true;
+                resourceBundle = bundleSupplier.apply(locale.getValue());
 
                 for (InvalidationListener listener : listeners) {
                     try {
