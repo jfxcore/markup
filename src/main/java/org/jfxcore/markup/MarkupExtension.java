@@ -11,7 +11,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * {@code MarkupExtension} represents an extension of the FXML 2.0 markup language.
+ * {@code MarkupExtension} represents an extension of the FXML/2 markup language.
  * <p>
  * Markup extensions can be implemented as either value suppliers or property consumers.
  * A value supplier can provide a value for a {@link Property}, a getter/setter pair, a named

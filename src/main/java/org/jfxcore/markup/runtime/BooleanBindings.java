@@ -15,7 +15,7 @@ import javafx.collections.ObservableList;
 import java.util.Objects;
 
 /**
- * Boolean binding implementations that are used by the FXML 2.0 compiler.
+ * Boolean binding implementations that are used by the FXML/2 compiler.
  */
 public final class BooleanBindings {
 

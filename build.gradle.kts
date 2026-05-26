@@ -75,7 +75,7 @@ publishing {
             pom {
                 url.set("https://github.com/jfxcore/markup")
                 name.set("markup")
-                description.set("FXML 2.0 markup support library")
+                description.set("FXML/2 markup support library")
                 licenses {
                     license {
                         name.set("BSD-3-Clause")
