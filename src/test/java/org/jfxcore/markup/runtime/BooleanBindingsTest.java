@@ -10,12 +10,46 @@ import javafx.beans.property.SimpleFloatProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleLongProperty;
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.value.ObservableDoubleValue;
+import javafx.beans.value.ObservableFloatValue;
 import javafx.beans.value.ObservableValue;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
+
+import java.util.function.Function;
+import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 class BooleanBindingsTest {
+
+    static Stream<BindingCase<ObservableFloatValue>> floatBindingCases() {
+        return Stream.of(
+            new BindingCase<ObservableFloatValue>("isZero", BooleanBindings::isZero, true, false, false),
+            new BindingCase<ObservableFloatValue>("isZeroOrNaN", BooleanBindings::isZeroOrNaN, true, false, true),
+            new BindingCase<ObservableFloatValue>("isNotZero", BooleanBindings::isNotZero, false, true, true),
+            new BindingCase<ObservableFloatValue>("isNotZeroOrNaN", BooleanBindings::isNotZeroOrNaN, false, true, false)
+        );
+    }
+
+    static Stream<BindingCase<ObservableDoubleValue>> doubleBindingCases() {
+        return Stream.of(
+            new BindingCase<ObservableDoubleValue>("isZero", BooleanBindings::isZero, true, false, false),
+            new BindingCase<ObservableDoubleValue>("isZeroOrNaN", BooleanBindings::isZeroOrNaN, true, false, true),
+            new BindingCase<ObservableDoubleValue>("isNotZero", BooleanBindings::isNotZero, false, true, true),
+            new BindingCase<ObservableDoubleValue>("isNotZeroOrNaN", BooleanBindings::isNotZeroOrNaN, false, true, false)
+        );
+    }
+
+    static Stream<BindingCase<ObservableValue<? extends Number>>> numberBindingCases() {
+        return Stream.of(
+            new BindingCase<ObservableValue<? extends Number>>("isZero", BooleanBindings::isZero, true, false, false),
+            new BindingCase<ObservableValue<? extends Number>>("isZeroOrNaN", BooleanBindings::isZeroOrNaN, true, false, true),
+            new BindingCase<ObservableValue<? extends Number>>("isNotZero", BooleanBindings::isNotZero, false, true, true),
+            new BindingCase<ObservableValue<? extends Number>>("isNotZeroOrNaN", BooleanBindings::isNotZeroOrNaN, false, true, false)
+        );
+    }
 
     @Test
     void isZero_integerValue_tracksSourceAndDisposes() {
@@ -91,214 +125,136 @@ class BooleanBindingsTest {
         assertFalse(binding.get()); // disposed binding must no longer observe source changes
     }
 
-    @Test
-    void isZero_floatValue_tracksSourceAndDisposes() {
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("floatBindingCases")
+    void zeroComparison_floatValue_tracksSourceAndDisposes(BindingCase<ObservableFloatValue> testCase) {
         var source = new SimpleFloatProperty(0f);
-        var binding = BooleanBindings.isZero(source);
+        var binding = testCase.factory().apply(source);
 
-        assertTrue(binding.get());
+        assertEquals(testCase.zeroResult(), binding.get(), "0");
         assertSame(source, binding.getDependencies().get(0));
         assertEquals(1, binding.getDependencies().size());
 
         source.set(0.5f);
-        assertFalse(binding.get());
+        assertEquals(testCase.nonZeroResult(), binding.get(), "non-zero");
 
         source.set(-0.0f);
-        assertTrue(binding.get());
-
-        binding.dispose();
-        source.set(1f);
-        assertTrue(binding.get()); // disposed binding must no longer observe source changes
-    }
-
-    @Test
-    void isNotZero_floatValue_tracksSourceAndDisposes() {
-        var source = new SimpleFloatProperty(2f);
-        var binding = BooleanBindings.isNotZero(source);
-
-        assertTrue(binding.get());
-        assertSame(source, binding.getDependencies().get(0));
-        assertEquals(1, binding.getDependencies().size());
-
-        source.set(0f);
-        assertFalse(binding.get());
+        assertEquals(testCase.zeroResult(), binding.get(), "-0");
 
         source.set(Float.NaN);
-        assertTrue(binding.get());
+        assertEquals(testCase.nanResult(), binding.get(), "NaN");
+
+        source.set(Float.POSITIVE_INFINITY);
+        assertEquals(testCase.nonZeroResult(), binding.get(), "infinity");
 
         binding.dispose();
         source.set(0f);
-        assertTrue(binding.get()); // disposed binding must no longer observe source changes
+        assertEquals(testCase.nonZeroResult(), binding.get(), "disposed binding must retain its cached value");
     }
 
-    @Test
-    void isZero_doubleValue_tracksSourceAndDisposes() {
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("doubleBindingCases")
+    void zeroComparison_doubleValue_tracksSourceAndDisposes(BindingCase<ObservableDoubleValue> testCase) {
         var source = new SimpleDoubleProperty(0d);
-        var binding = BooleanBindings.isZero(source);
+        var binding = testCase.factory().apply(source);
 
-        assertTrue(binding.get());
+        assertEquals(testCase.zeroResult(), binding.get(), "0");
         assertSame(source, binding.getDependencies().get(0));
         assertEquals(1, binding.getDependencies().size());
 
         source.set(0.25d);
-        assertFalse(binding.get());
+        assertEquals(testCase.nonZeroResult(), binding.get(), "non-zero");
 
         source.set(-0.0d);
-        assertTrue(binding.get());
-
-        binding.dispose();
-        source.set(9d);
-        assertTrue(binding.get()); // disposed binding must no longer observe source changes
-    }
-
-    @Test
-    void isNotZero_doubleValue_tracksSourceAndDisposes() {
-        var source = new SimpleDoubleProperty(-1d);
-        var binding = BooleanBindings.isNotZero(source);
-
-        assertTrue(binding.get());
-        assertSame(source, binding.getDependencies().get(0));
-        assertEquals(1, binding.getDependencies().size());
-
-        source.set(0d);
-        assertFalse(binding.get());
+        assertEquals(testCase.zeroResult(), binding.get(), "-0");
 
         source.set(Double.NaN);
-        assertTrue(binding.get());
+        assertEquals(testCase.nanResult(), binding.get(), "NaN");
+
+        source.set(Double.POSITIVE_INFINITY);
+        assertEquals(testCase.nonZeroResult(), binding.get(), "infinity");
 
         binding.dispose();
         source.set(0d);
-        assertTrue(binding.get()); // disposed binding must no longer observe source changes
+        assertEquals(testCase.nonZeroResult(), binding.get(), "disposed binding must retain its cached value");
     }
 
-    @Test
-    void isZero_numberValue_handlesNullAndSupportedNumberTypes() {
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("numberBindingCases")
+    void zeroComparison_numberValue_handlesNullAndSupportedNumberTypes(
+            BindingCase<ObservableValue<? extends Number>> testCase) {
         ObjectProperty<Number> source = new SimpleObjectProperty<>(null);
-        BooleanBinding binding = BooleanBindings.isZero(source);
+        BooleanBinding binding = testCase.factory().apply(source);
 
-        assertTrue(binding.get(), "null must be treated as zero");
+        assertEquals(testCase.zeroResult(), binding.get(), "null");
         assertSame(source, binding.getDependencies().get(0));
         assertEquals(1, binding.getDependencies().size());
 
         source.set(0);
-        assertTrue(binding.get());
+        assertEquals(testCase.zeroResult(), binding.get(), "integer zero");
 
         source.set(0L);
-        assertTrue(binding.get());
+        assertEquals(testCase.zeroResult(), binding.get(), "long zero");
 
         source.set(0f);
-        assertTrue(binding.get());
+        assertEquals(testCase.zeroResult(), binding.get(), "float zero");
 
         source.set(0d);
-        assertTrue(binding.get());
+        assertEquals(testCase.zeroResult(), binding.get(), "double zero");
+
+        source.set(Float.NaN);
+        assertEquals(testCase.nanResult(), binding.get(), "float NaN");
+
+        source.set(Double.NaN);
+        assertEquals(testCase.nanResult(), binding.get(), "double NaN");
 
         source.set((byte)0);
-        assertTrue(binding.get());
+        assertEquals(testCase.zeroResult(), binding.get(), "byte zero");
 
         source.set((short)0);
-        assertTrue(binding.get());
+        assertEquals(testCase.zeroResult(), binding.get(), "short zero");
 
         source.set(1);
-        assertFalse(binding.get());
+        assertEquals(testCase.nonZeroResult(), binding.get(), "non-zero integer");
 
         source.set(1L);
-        assertFalse(binding.get());
+        assertEquals(testCase.nonZeroResult(), binding.get(), "non-zero long");
 
         source.set(1f);
-        assertFalse(binding.get());
+        assertEquals(testCase.nonZeroResult(), binding.get(), "non-zero float");
 
         source.set(1d);
-        assertFalse(binding.get());
+        assertEquals(testCase.nonZeroResult(), binding.get(), "non-zero double");
 
         source.set((byte)1);
-        assertFalse(binding.get());
+        assertEquals(testCase.nonZeroResult(), binding.get(), "non-zero byte");
 
         source.set((short)1);
-        assertFalse(binding.get());
+        assertEquals(testCase.nonZeroResult(), binding.get(), "non-zero short");
     }
 
-    @Test
-    void isZero_numberValue_usesDoubleValueForCustomNumberSubclass() {
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("numberBindingCases")
+    void zeroComparison_numberValue_usesDoubleValueForCustomNumberSubclass(
+            BindingCase<ObservableValue<? extends Number>> testCase) {
         ObjectProperty<Number> source = new SimpleObjectProperty<>(new CustomNumber(0.0));
-        BooleanBinding binding = BooleanBindings.isZero(source);
-        assertTrue(binding.get());
+        BooleanBinding binding = testCase.factory().apply(source);
+        assertEquals(testCase.zeroResult(), binding.get(), "zero");
 
         source.set(new CustomNumber(5.0));
-        assertFalse(binding.get());
+        assertEquals(testCase.nonZeroResult(), binding.get(), "positive");
 
         source.set(new CustomNumber(-3.0));
-        assertFalse(binding.get());
+        assertEquals(testCase.nonZeroResult(), binding.get(), "negative");
 
         source.set(new CustomNumber(0.0));
-        assertTrue(binding.get());
+        assertEquals(testCase.zeroResult(), binding.get(), "zero after change");
 
         source.set(new CustomNumber(0.00001));
-        assertFalse(binding.get());
-    }
+        assertEquals(testCase.nonZeroResult(), binding.get(), "small non-zero");
 
-    @Test
-    void isNotZero_numberValue_handlesNullAndSupportedNumberTypes() {
-        ObjectProperty<Number> source = new SimpleObjectProperty<>(null);
-        BooleanBinding binding = BooleanBindings.isNotZero(source);
-
-        assertFalse(binding.get(), "null must be treated as non-nonzero");
-        assertSame(source, binding.getDependencies().get(0));
-        assertEquals(1, binding.getDependencies().size());
-
-        source.set(0);
-        assertFalse(binding.get());
-
-        source.set(0L);
-        assertFalse(binding.get());
-
-        source.set(0f);
-        assertFalse(binding.get());
-
-        source.set(0d);
-        assertFalse(binding.get());
-
-        source.set((byte)0);
-        assertFalse(binding.get());
-
-        source.set((short)0);
-        assertFalse(binding.get());
-
-        source.set(1);
-        assertTrue(binding.get());
-
-        source.set(1L);
-        assertTrue(binding.get());
-
-        source.set(1f);
-        assertTrue(binding.get());
-
-        source.set(1d);
-        assertTrue(binding.get());
-
-        source.set((byte)1);
-        assertTrue(binding.get());
-
-        source.set((short)1);
-        assertTrue(binding.get());
-    }
-
-    @Test
-    void isNotZero_numberValue_usesDoubleValueForCustomNumberSubclass() {
-        ObjectProperty<Number> source = new SimpleObjectProperty<>(new CustomNumber(0.0));
-        BooleanBinding binding = BooleanBindings.isNotZero(source);
-        assertFalse(binding.get());
-
-        source.set(new CustomNumber(5.0));
-        assertTrue(binding.get());
-
-        source.set(new CustomNumber(-3.0));
-        assertTrue(binding.get());
-
-        source.set(new CustomNumber(0.0));
-        assertFalse(binding.get());
-
-        source.set(new CustomNumber(0.00001));
-        assertTrue(binding.get());
+        source.set(new CustomNumber(Double.NaN));
+        assertEquals(testCase.nanResult(), binding.get(), "NaN");
     }
 
     @Test
@@ -371,14 +327,31 @@ class BooleanBindingsTest {
         assertNullArgument(() -> BooleanBindings.isZero((javafx.beans.value.ObservableLongValue)null));
         assertNullArgument(() -> BooleanBindings.isNotZero((javafx.beans.value.ObservableLongValue)null));
         assertNullArgument(() -> BooleanBindings.isZero((javafx.beans.value.ObservableFloatValue)null));
+        assertNullArgument(() -> BooleanBindings.isZeroOrNaN((javafx.beans.value.ObservableFloatValue)null));
         assertNullArgument(() -> BooleanBindings.isNotZero((javafx.beans.value.ObservableFloatValue)null));
+        assertNullArgument(() -> BooleanBindings.isNotZeroOrNaN((javafx.beans.value.ObservableFloatValue)null));
         assertNullArgument(() -> BooleanBindings.isZero((javafx.beans.value.ObservableDoubleValue)null));
+        assertNullArgument(() -> BooleanBindings.isZeroOrNaN((javafx.beans.value.ObservableDoubleValue)null));
         assertNullArgument(() -> BooleanBindings.isNotZero((javafx.beans.value.ObservableDoubleValue)null));
+        assertNullArgument(() -> BooleanBindings.isNotZeroOrNaN((javafx.beans.value.ObservableDoubleValue)null));
         assertNullArgument(() -> BooleanBindings.isZero((ObservableValue<? extends Number>)null));
+        assertNullArgument(() -> BooleanBindings.isZeroOrNaN((ObservableValue<? extends Number>)null));
         assertNullArgument(() -> BooleanBindings.isNotZero((ObservableValue<? extends Number>)null));
+        assertNullArgument(() -> BooleanBindings.isNotZeroOrNaN((ObservableValue<? extends Number>)null));
         assertNullArgument(() -> BooleanBindings.isNull((ObservableValue<?>)null));
         assertNullArgument(() -> BooleanBindings.isNotNull((ObservableValue<?>)null));
         assertNullArgument(() -> BooleanBindings.isNot(null));
+    }
+
+    private record BindingCase<T>(String name,
+                                  Function<T, BooleanBinding> factory,
+                                  boolean zeroResult,
+                                  boolean nonZeroResult,
+                                  boolean nanResult) {
+        @Override
+        public String toString() {
+            return name;
+        }
     }
 
     private static void assertNullArgument(Runnable action) {
