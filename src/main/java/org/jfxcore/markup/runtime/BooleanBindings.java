@@ -182,6 +182,39 @@ public final class BooleanBindings {
     }
 
     /**
+     * Creates a {@code BooleanBinding} that is {@code true} when the {@code value} is zero or NaN,
+     * and {@code false} otherwise.
+     *
+     * @param value the observable value
+     * @return the binding
+     */
+    public static BooleanBinding isZeroOrNaN(ObservableFloatValue value) {
+        Objects.requireNonNull(value, "value cannot be null");
+
+        return new BooleanBinding() {
+            {
+                bind(value);
+            }
+
+            @Override
+            public void dispose() {
+                unbind(value);
+            }
+
+            @Override
+            protected boolean computeValue() {
+                float v = value.get();
+                return v == 0 || Float.isNaN(v);
+            }
+
+            @Override
+            public ObservableList<?> getDependencies() {
+                return FXCollections.singletonObservableList(value);
+            }
+        };
+    }
+
+    /**
      * Creates a {@code BooleanBinding} that is {@code false} when the {@code value} is zero,
      * and {@code true} otherwise.
      *
@@ -204,6 +237,39 @@ public final class BooleanBindings {
             @Override
             protected boolean computeValue() {
                 return value.get() != 0;
+            }
+
+            @Override
+            public ObservableList<?> getDependencies() {
+                return FXCollections.singletonObservableList(value);
+            }
+        };
+    }
+
+    /**
+     * Creates a {@code BooleanBinding} that is {@code false} when the {@code value} is zero or NaN,
+     * and {@code true} otherwise.
+     *
+     * @param value the observable value
+     * @return the binding
+     */
+    public static BooleanBinding isNotZeroOrNaN(ObservableFloatValue value) {
+        Objects.requireNonNull(value, "value cannot be null");
+
+        return new BooleanBinding() {
+            {
+                bind(value);
+            }
+
+            @Override
+            public void dispose() {
+                unbind(value);
+            }
+
+            @Override
+            protected boolean computeValue() {
+                float v = value.get();
+                return v != 0 && !Float.isNaN(v);
             }
 
             @Override
@@ -246,6 +312,39 @@ public final class BooleanBindings {
     }
 
     /**
+     * Creates a {@code BooleanBinding} that is {@code true} when the {@code value} is zero or NaN,
+     * and {@code false} otherwise.
+     *
+     * @param value the observable value
+     * @return the binding
+     */
+    public static BooleanBinding isZeroOrNaN(ObservableDoubleValue value) {
+        Objects.requireNonNull(value, "value cannot be null");
+
+        return new BooleanBinding() {
+            {
+                bind(value);
+            }
+
+            @Override
+            public void dispose() {
+                unbind(value);
+            }
+
+            @Override
+            protected boolean computeValue() {
+                double v = value.get();
+                return v == 0 || Double.isNaN(v);
+            }
+
+            @Override
+            public ObservableList<?> getDependencies() {
+                return FXCollections.singletonObservableList(value);
+            }
+        };
+    }
+
+    /**
      * Creates a {@code BooleanBinding} that is {@code false} when the {@code value} is zero,
      * and {@code true} otherwise.
      *
@@ -268,6 +367,39 @@ public final class BooleanBindings {
             @Override
             protected boolean computeValue() {
                 return value.get() != 0;
+            }
+
+            @Override
+            public ObservableList<?> getDependencies() {
+                return FXCollections.singletonObservableList(value);
+            }
+        };
+    }
+
+    /**
+     * Creates a {@code BooleanBinding} that is {@code false} when the {@code value} is zero or NaN,
+     * and {@code true} otherwise.
+     *
+     * @param value the observable value
+     * @return the binding
+     */
+    public static BooleanBinding isNotZeroOrNaN(ObservableDoubleValue value) {
+        Objects.requireNonNull(value, "value cannot be null");
+
+        return new BooleanBinding() {
+            {
+                bind(value);
+            }
+
+            @Override
+            public void dispose() {
+                unbind(value);
+            }
+
+            @Override
+            protected boolean computeValue() {
+                double v = value.get();
+                return v != 0 && !Double.isNaN(v);
             }
 
             @Override
@@ -318,6 +450,47 @@ public final class BooleanBindings {
     }
 
     /**
+     * Creates a {@code BooleanBinding} that is {@code true} when the {@code value} is zero, NaN,
+     * or {@code null}, and {@code false} otherwise.
+     *
+     * @param value the observable value
+     * @return the binding
+     */
+    public static BooleanBinding isZeroOrNaN(ObservableValue<? extends Number> value) {
+        Objects.requireNonNull(value, "value cannot be null");
+
+        return new BooleanBinding() {
+            {
+                bind(value);
+            }
+
+            @Override
+            public void dispose() {
+                unbind(value);
+            }
+
+            @Override
+            protected boolean computeValue() {
+                Number n = value.getValue();
+                if (n == null) return true;
+                if (n instanceof Double v) return v == 0 || Double.isNaN(v);
+                if (n instanceof Integer v) return v == 0;
+                if (n instanceof Long v) return v == 0;
+                if (n instanceof Float v) return v == 0 || Float.isNaN(v);
+                if (n instanceof Byte v) return v == 0;
+                if (n instanceof Short v) return v == 0;
+                double v = n.doubleValue();
+                return v == 0 || Double.isNaN(v);
+            }
+
+            @Override
+            public ObservableList<?> getDependencies() {
+                return FXCollections.singletonObservableList(value);
+            }
+        };
+    }
+
+    /**
      * Creates a {@code BooleanBinding} that is {@code false} when the {@code value} is zero,
      * and {@code true} otherwise.
      *
@@ -348,6 +521,47 @@ public final class BooleanBindings {
                 if (n instanceof Byte v) return v != 0;
                 if (n instanceof Short v) return v != 0;
                 return n.doubleValue() != 0;
+            }
+
+            @Override
+            public ObservableList<?> getDependencies() {
+                return FXCollections.singletonObservableList(value);
+            }
+        };
+    }
+
+    /**
+     * Creates a {@code BooleanBinding} that is {@code false} when the {@code value} is zero, NaN,
+     * or {@code null}, and {@code true} otherwise.
+     *
+     * @param value the observable value
+     * @return the binding
+     */
+    public static BooleanBinding isNotZeroOrNaN(ObservableValue<? extends Number> value) {
+        Objects.requireNonNull(value, "value cannot be null");
+
+        return new BooleanBinding() {
+            {
+                bind(value);
+            }
+
+            @Override
+            public void dispose() {
+                unbind(value);
+            }
+
+            @Override
+            protected boolean computeValue() {
+                Number n = value.getValue();
+                if (n == null) return false;
+                if (n instanceof Double v) return v != 0 && !Double.isNaN(v);
+                if (n instanceof Integer v) return v != 0;
+                if (n instanceof Long v) return v != 0;
+                if (n instanceof Float v) return v != 0 && !Float.isNaN(v);
+                if (n instanceof Byte v) return v != 0;
+                if (n instanceof Short v) return v != 0;
+                double v = n.doubleValue();
+                return v != 0 && !Double.isNaN(v);
             }
 
             @Override
