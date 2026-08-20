@@ -1,4 +1,4 @@
-// Copyright (c) 2025, JFXcore. All rights reserved.
+// Copyright (c) 2025, 2026, JFXcore. All rights reserved.
 // Use of this source code is governed by the BSD-3-Clause license that can be found in the LICENSE file.
 
 package org.jfxcore.markup;
@@ -9,6 +9,13 @@ import javafx.beans.NamedArg;
  * Provides information about the context in which a {@link MarkupExtension} is applied.
  */
 public interface MarkupContext {
+
+    /**
+     * Returns the name of the FXML document without file extension.
+     *
+     * @return the document name
+     */
+    String getDocumentName();
 
     /**
      * Returns the root element of the FXML document.
