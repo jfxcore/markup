@@ -40,16 +40,32 @@ public final class ClassPathResource implements MarkupExtension.Supplier<Object>
     }
 
     private static Object get(String value, MarkupContext context) throws Exception {
-        URL url = value.startsWith("/") ?
-            Thread.currentThread().getContextClassLoader().getResource(value.substring(1)) :
-            context.getRoot().getClass().getResource(value);
-
+        URL url = findResource(value, context);
         if (url == null) {
             throw new RuntimeException("Resource not found: " + value);
         }
 
-        Class<?> targetType = context.getTargetType();
+        return convert(url, context.getTargetType());
+    }
 
+    private static URL findResource(String value, MarkupContext context) {
+        if (value.startsWith("/")) {
+            return Thread.currentThread().getContextClassLoader().getResource(value.substring(1));
+        }
+
+        Class<?> rootClass = context.getRoot().getClass();
+
+        if (value.indexOf('/') < 0 && value.indexOf('\\') < 0) {
+            URL embedded = rootClass.getResource(context.getDocumentName() + "$" + value);
+            if (embedded != null) {
+                return embedded;
+            }
+        }
+
+        return rootClass.getResource(value);
+    }
+
+    private static Object convert(URL url, Class<?> targetType) throws Exception {
         if (targetType.isAssignableFrom(String.class)) {
             return url.toExternalForm();
         }
