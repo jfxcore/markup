@@ -19,7 +19,7 @@ public class ClassPathResourceTest {
         Object value = new ClassPathResource("shared.txt").get(context(String.class));
 
         assertEquals("embedded", read(value));
-        assertTrue(((String)value).endsWith("MyView$shared.txt"));
+        assertTrue(((String)value).endsWith("MyView$808553fe$shared.txt"));
     }
 
     @Test
