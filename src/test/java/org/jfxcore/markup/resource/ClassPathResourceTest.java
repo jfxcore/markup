@@ -23,6 +23,14 @@ public class ClassPathResourceTest {
     }
 
     @Test
+    public void Embedded_Resource_Hash_Is_Case_Insensitive() throws Exception {
+        Object value = new ClassPathResource("Mixed.txt").get(context(String.class));
+
+        assertEquals("mixed", read(value));
+        assertTrue(((String)value).endsWith("MyView$a6820e2c$Mixed.txt"));
+    }
+
+    @Test
     public void Missing_Embedded_Resource_Falls_Back_To_Ordinary_Resource() throws Exception {
         Object value = new ClassPathResource("fallback.txt").get(context(URI.class));
 
