@@ -9,7 +9,9 @@ import javafx.beans.DefaultProperty;
 import javafx.beans.NamedArg;
 import java.net.URI;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.Objects;
+import java.util.zip.CRC32;
 
 /**
  * Finds a resource with a given name.
@@ -56,13 +58,22 @@ public final class ClassPathResource implements MarkupExtension.Supplier<Object>
         Class<?> rootClass = context.getRoot().getClass();
 
         if (value.indexOf('/') < 0 && value.indexOf('\\') < 0) {
-            URL embedded = rootClass.getResource(context.getDocumentName() + "$" + value);
+            String resourceName = deriveResourceName(context.getDocumentName(), value);
+            URL embedded = rootClass.getResource(resourceName);
             if (embedded != null) {
                 return embedded;
             }
         }
 
         return rootClass.getResource(value);
+    }
+
+    private static String deriveResourceName(String documentName, String resourceName) {
+        var crc = new CRC32();
+        crc.update(documentName.getBytes(StandardCharsets.UTF_8));
+        crc.update(resourceName.getBytes(StandardCharsets.UTF_8));
+        String hash = Long.toHexString(crc.getValue());
+        return documentName + "$" + hash + "$" + resourceName;
     }
 
     private static Object convert(URL url, Class<?> targetType) throws Exception {
