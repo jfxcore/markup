@@ -10,6 +10,7 @@ import javafx.beans.NamedArg;
 import java.net.URI;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.util.Locale;
 import java.util.Objects;
 import java.util.zip.CRC32;
 
@@ -71,7 +72,7 @@ public final class ClassPathResource implements MarkupExtension.Supplier<Object>
     private static String deriveResourceName(String documentName, String resourceName) {
         var crc = new CRC32();
         crc.update(documentName.getBytes(StandardCharsets.UTF_8));
-        crc.update(resourceName.getBytes(StandardCharsets.UTF_8));
+        crc.update(resourceName.toLowerCase(Locale.ROOT).getBytes(StandardCharsets.UTF_8));
         String hash = Long.toHexString(crc.getValue());
         return documentName + "$" + hash + "$" + resourceName;
     }
