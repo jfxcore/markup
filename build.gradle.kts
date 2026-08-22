@@ -6,6 +6,7 @@ import java.net.http.HttpRequest
 import java.net.http.HttpResponse
 import java.util.Base64
 import org.gradle.api.publish.maven.tasks.PublishToMavenRepository
+import org.jfxcore.gradle.ClassFileVersionAttribute
 
 plugins {
     `java-library`
@@ -35,6 +36,15 @@ java {
 
 tasks.test {
     useJUnitPlatform()
+}
+
+tasks.withType<JavaCompile>().configureEach {
+    inputs.property("org.jfxcore.markup.version", version.toString())
+
+    doLast {
+        ClassFileVersionAttribute.addToDirectory(
+            destinationDirectory.get().asFile.toPath(), version.toString())
+    }
 }
 
 tasks.withType<Javadoc>().configureEach {
