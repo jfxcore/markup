@@ -6,20 +6,20 @@ one of the following features:
 - The `InverseMethod` annotation for compiled bindings
 
 # Releases
-The latest release is available on [Maven Central](https://central.sonatype.com/artifact/org.jfxcore/markup/0.3.0).
+The latest release is available on [Maven Central](https://central.sonatype.com/artifact/org.jfxcore/markup/0.4.0).
 
 ## Maven
 ```xml
 <dependency>
     <groupId>org.jfxcore</groupId>
     <artifactId>markup</artifactId>
-    <version>0.3.0</version>
+    <version>0.4.0</version>
 </dependency>
 ```
 
 ## Gradle
 ```kotlin
 dependencies {
-    implementation("org.jfxcore:markup:0.3.0")
+    implementation("org.jfxcore:markup:0.4.0")
 }
 ```
