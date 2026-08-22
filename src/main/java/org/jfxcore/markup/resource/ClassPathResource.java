@@ -74,7 +74,7 @@ public final class ClassPathResource implements MarkupExtension.Supplier<Object>
         crc.update(documentName.getBytes(StandardCharsets.UTF_8));
         crc.update(resourceName.toLowerCase(Locale.ROOT).getBytes(StandardCharsets.UTF_8));
         String hash = Long.toHexString(crc.getValue());
-        return documentName + "$" + hash + "$" + resourceName;
+        return documentName + "$" + hash + "$" + ResourceNameEncoder.encode(resourceName);
     }
 
     private static Object convert(URL url, Class<?> targetType) throws Exception {
