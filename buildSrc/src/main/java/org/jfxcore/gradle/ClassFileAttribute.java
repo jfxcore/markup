@@ -8,6 +8,8 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.stream.Stream;
 import org.objectweb.asm.Attribute;
 import org.objectweb.asm.ByteVector;
@@ -16,21 +18,21 @@ import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.Opcodes;
 
-public final class ClassFileVersionAttribute {
+public final class ClassFileAttribute {
 
-    public static final String ATTRIBUTE_NAME = "org.jfxcore.markup.version";
+    private ClassFileAttribute() {}
 
-    private ClassFileVersionAttribute() {}
-
-    /**
-     * Adds or replaces the org.jfxcore.markup.version attribute on every .class file below the given directory.
-     */
-    public static void addToDirectory(Path classesDirectory, String version) throws IOException {
+    public static void addToDirectory(Path classesDirectory, Map<String, String> attributes) throws IOException {
         if (!Files.isDirectory(classesDirectory)) {
             return;
         }
 
-        byte[] payload = version.getBytes(StandardCharsets.UTF_8);
+        Map<String, byte[]> payloads = new LinkedHashMap<>();
+        attributes.forEach((name, value) -> payloads.put(name, value.getBytes(StandardCharsets.UTF_8)));
+
+        if (payloads.isEmpty()) {
+            return;
+        }
 
         try (Stream<Path> paths = Files.walk(classesDirectory)) {
             Iterator<Path> iterator = paths
@@ -39,26 +41,26 @@ public final class ClassFileVersionAttribute {
                 .iterator();
 
             while (iterator.hasNext()) {
-                addToClassFile(iterator.next(), payload);
+                addToClassFile(iterator.next(), payloads);
             }
         }
     }
 
-    private static void addToClassFile(Path classFile, byte[] payload) throws IOException {
+    private static void addToClassFile(Path classFile, Map<String, byte[]> attributes) throws IOException {
         byte[] input = Files.readAllBytes(classFile);
         ClassReader reader = new ClassReader(input);
         ClassWriter writer = new ClassWriter(reader, 0);
         ClassVisitor visitor = new ClassVisitor(Opcodes.ASM9, writer) {
             @Override
-            public void visitAttribute(Attribute attribute) {
-                if (!ATTRIBUTE_NAME.equals(attribute.type)) {
-                    super.visitAttribute(attribute);
+            public void visitAttribute(Attribute existingAttribute) {
+                if (!attributes.containsKey(existingAttribute.type)) {
+                    super.visitAttribute(existingAttribute);
                 }
             }
 
             @Override
             public void visitEnd() {
-                super.visitAttribute(new RawAttribute(ATTRIBUTE_NAME, payload));
+                attributes.forEach((name, payload) -> super.visitAttribute(new RawAttribute(name, payload)));
                 super.visitEnd();
             }
         };

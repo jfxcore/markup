@@ -6,7 +6,7 @@ import java.net.http.HttpRequest
 import java.net.http.HttpResponse
 import java.util.Base64
 import org.gradle.api.publish.maven.tasks.PublishToMavenRepository
-import org.jfxcore.gradle.ClassFileVersionAttribute
+import org.jfxcore.gradle.ClassFileAttribute
 
 plugins {
     `java-library`
@@ -16,6 +16,10 @@ plugins {
 
 group = "org.jfxcore"
 version = project.findProperty("TAG_VERSION_PROJECT") ?: "1.0-SNAPSHOT"
+
+val classFileAttributes = mapOf(
+    "org.jfxcore.markup.version" to version.toString(),
+    "org.jfxcore.compiler.minVersion" to "0.17.0")
 
 val signingKey: String? by project
 val signingKeyName: String? by project
@@ -39,11 +43,10 @@ tasks.test {
 }
 
 tasks.withType<JavaCompile>().configureEach {
-    inputs.property("org.jfxcore.markup.version", version.toString())
+    classFileAttributes.forEach(inputs::property)
 
     doLast {
-        ClassFileVersionAttribute.addToDirectory(
-            destinationDirectory.get().asFile.toPath(), version.toString())
+        ClassFileAttribute.addToDirectory(destinationDirectory.get().asFile.toPath(), classFileAttributes)
     }
 }
 
