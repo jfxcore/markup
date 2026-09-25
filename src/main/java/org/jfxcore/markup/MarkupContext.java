@@ -4,6 +4,7 @@
 package org.jfxcore.markup;
 
 import javafx.beans.NamedArg;
+import java.net.URL;
 
 /**
  * Provides information about the context in which a {@link MarkupExtension} is applied.
@@ -72,4 +73,18 @@ public interface MarkupContext {
      * @return the target type
      */
     Class<?> getTargetType();
+
+    /**
+     * Invokes {@link Class#getResource(String)} on the {@linkplain #getRoot() root} class from the
+     * module in which it is defined.
+     * <p>
+     * Use this method instead of calling {@code getRoot().getClass().getResource(...)} from a markup
+     * extension to find resources whose packages are not open to the markup extension's module.
+     *
+     * @param name name of the desired resource
+     * @return A {@link URL} object; {@code null} if no resource with this name is found,
+     *         the resource cannot be located by a {@code URL}, or the resource is in a
+     *         package that is not open to at least the caller module.
+     */
+    URL getResource(String name);
 }
