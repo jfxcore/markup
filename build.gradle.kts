@@ -19,7 +19,7 @@ version = project.findProperty("TAG_VERSION_PROJECT") ?: "1.0-SNAPSHOT"
 
 val classFileAttributes = mapOf(
     "org.jfxcore.markup.version" to version.toString(),
-    "org.jfxcore.compiler.minVersion" to "0.17.0")
+    "org.jfxcore.compiler.minVersion" to "0.18.0")
 
 val signingKey: String? by project
 val signingKeyName: String? by project

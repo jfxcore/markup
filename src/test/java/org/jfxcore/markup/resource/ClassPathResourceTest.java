@@ -125,6 +125,11 @@ public class ClassPathResourceTest {
         public Class<?> getTargetType() {
             return targetType;
         }
+
+        @Override
+        public URL getResource(String name) {
+            return root.getClass().getResource(name);
+        }
     }
 
     private static final class TestRoot {}
